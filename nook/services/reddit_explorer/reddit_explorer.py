@@ -10,7 +10,7 @@ from typing import Dict, List, Literal, Optional
 import praw
 from praw.models import Submission
 
-from nook.common.grok_client import Grok3Client
+from nook.common.gemini_client import GeminiClient
 from nook.common.storage import LocalStorage
 
 
@@ -101,7 +101,7 @@ class RedditExplorer:
             user_agent=self.user_agent
         )
         
-        self.grok_client = Grok3Client()
+        self.gemini_client = GeminiClient()
         self.storage = LocalStorage(storage_dir)
         
         # サブレディットの設定を読み込む
@@ -217,7 +217,7 @@ class RedditExplorer:
         try:
             prompt = f"以下の英語のテキストを自然な日本語に翻訳してください。専門用語や固有名詞は適切に翻訳し、必要に応じて英語の原語を括弧内に残してください。\n\n{text}"
             
-            translated_text = self.grok_client.generate_content(
+            translated_text = self.gemini_client.generate_content(
                 prompt=prompt,
                 temperature=0.3,
                 max_tokens=1000
@@ -294,7 +294,7 @@ class RedditExplorer:
         """
         
         try:
-            summary = self.grok_client.generate_content(
+            summary = self.gemini_client.generate_content(
                 prompt=prompt,
                 system_instruction=system_instruction,
                 temperature=0.3,
@@ -348,4 +348,4 @@ class RedditExplorer:
                     content += "---\n\n"
         
         # 保存
-        self.storage.save_markdown(content, "reddit_explorer", today) 
+        self.storage.save_markdown(content, "reddit_explorer", today)

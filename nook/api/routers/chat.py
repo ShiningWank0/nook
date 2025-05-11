@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from dotenv import load_dotenv
 
 from nook.api.models.schemas import ChatRequest, ChatResponse
-from nook.common.grok_client import Grok3Client
+from nook.common.gemini_client import GeminiClient
 
 # 環境変数の読み込み
 load_dotenv()
@@ -40,16 +40,16 @@ async def chat(request: ChatRequest) -> ChatResponse:
         APIキーが設定されていない場合や、APIリクエストに失敗した場合
     """
     # APIキーの確認
-    api_key = os.environ.get("GROK_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         # デモモード: APIキーがない場合はダミーレスポンスを返す
         return ChatResponse(
-            response="申し訳ありませんが、GROK_API_KEYが設定されていないため、実際の応答ができません。環境変数を設定してください。"
+            response="申し訳ありませんが、GEMINI_API_KEYが設定されていないため、実際の応答ができません。環境変数を設定してください。"
         )
     
     try:
-        # Grok3クライアントの初期化
-        client = Grok3Client(api_key=api_key)
+        # Geminiクライアントの初期化
+        client = GeminiClient(api_key=api_key)
         
         # チャット履歴の整形
         formatted_history = []
@@ -64,7 +64,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         if request.markdown:
             system_prompt += f"\n\n以下のコンテンツに基づいて回答してください:\n\n{request.markdown}"
         
-        # Grok3 APIを呼び出し
+        # Gemini APIを呼び出し
         response = client.chat(
             messages=formatted_history,
             system=system_prompt,
@@ -75,4 +75,4 @@ async def chat(request: ChatRequest) -> ChatResponse:
         return ChatResponse(response=response)
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"チャットリクエストの処理中にエラーが発生しました: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"チャットリクエストの処理中にエラーが発生しました: {str(e)}")

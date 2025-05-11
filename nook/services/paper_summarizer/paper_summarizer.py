@@ -5,15 +5,15 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 import arxiv
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-from nook.common.grok_client import Grok3Client
 from nook.common.storage import LocalStorage
+from nook.common.gemini_client import GeminiClient
 
 
 @dataclass
@@ -60,7 +60,7 @@ class PaperSummarizer:
             ストレージディレクトリのパス。
         """
         self.storage = LocalStorage(storage_dir)
-        self.grok_client = Grok3Client()
+        self.gemini_client = GeminiClient()
     
     def run(self, limit: int = 5) -> None:
         """
@@ -236,7 +236,7 @@ class PaperSummarizer:
         try:
             prompt = f"以下の英語の学術論文のテキストを自然な日本語に翻訳してください。専門用語は適切に翻訳し、必要に応じて英語の専門用語を括弧内に残してください。\n\n{text}"
             
-            translated_text = self.grok_client.generate_content(
+            translated_text = self.gemini_client.generate_content(
                 prompt=prompt,
                 temperature=0.3,
                 max_tokens=1000
@@ -295,7 +295,7 @@ class PaperSummarizer:
         """
         
         try:
-            summary = self.grok_client.generate_content(
+            summary = self.gemini_client.generate_content(
                 prompt=prompt,
                 system_instruction=system_instruction,
                 temperature=0.3,
@@ -305,6 +305,50 @@ class PaperSummarizer:
         except Exception as e:
             paper_info.summary = f"要約の生成中にエラーが発生しました: {str(e)}"
     
+    def _generate_japan_summary(self, paper_data: Dict[str, Any]) -> str:
+        """論文の日本語要約を生成します。"""
+        client = GeminiClient()
+        
+        title = paper_data.get("title", "")
+        abstract = paper_data.get("summary", "")
+        authors = ", ".join([author.get("name", "") for author in paper_data.get("authors", [])])
+        
+        prompt = f"""
+        以下の論文情報を日本語に要約してください。
+        以下のフォーマットに従って、情報を簡潔に整理してください。
+
+        タイトル: {title}
+        著者: {authors}
+        概要: {abstract}
+
+        出力フォーマット:
+        # 日本語タイトル
+        
+        ## 著者
+        著者リスト（日本語にしなくて良い）
+        
+        ## 概要
+        日本語での要約（300-500字程度）
+        
+        ## 重要ポイント
+        - ポイント1
+        - ポイント2
+        - ポイント3
+        
+        ## 可能な応用・影響
+        この研究がどのように応用される可能性があるか、どのような影響があるか（100-200字程度）
+        """
+        
+        try:
+            return client.generate_content(
+                prompt=prompt, 
+                temperature=0.3,
+                max_tokens=1500
+            )
+        except Exception as e:
+            print(f"Error generating summary: {str(e)}")
+            return f"# {title}\n\n要約の生成に失敗しました。"
+
     def _store_summaries(self, papers: List[PaperInfo]) -> None:
         """
         要約を保存します。
@@ -327,4 +371,4 @@ class PaperSummarizer:
             content += "---\n\n"
         
         # 保存
-        self.storage.save_markdown(content, "paper_summarizer", today) 
+        self.storage.save_markdown(content, "paper_summarizer", today)

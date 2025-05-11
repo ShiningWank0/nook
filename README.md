@@ -7,7 +7,7 @@ Discus0434氏の[Nook](https://github.com/discus0434/nook)をベースに、
 以下の変更を行っています。
 - 完全にローカルで動作するように変更(AWS/S3は使用していません)
 - 取得した記事をローカルストレージの~/nook/data/に保存
-- 生成AIのAPIを変更(GeminiからGrok3 APIに変更)
+- 生成AIのAPIを変更(GeminiのAPIを使用)
 - 天気APIを追加(OpenWeatherMap API)
 - フロントエンドを追加(React + Vite)
 - バックエンドを追加(FastAPI)
@@ -51,7 +51,7 @@ Nookは以下のコンポーネントで構成されています：
    - Tech Feed：技術ブログのRSSフィードを監視・収集・要約
    - Paper Summarizer：arXiv論文を収集・要約
    - ローカルストレージ：収集したデータの保存
-   - Grok3 APIクライアント：テキスト生成・要約
+   - Gemini APIクライアント：テキスト生成・要約
 
 ## Dockerを使用したセットアップ
 
@@ -107,8 +107,9 @@ docker-compose -f docker-compose.dev.yaml down
 - Node.js 18以上
 - npm または yarn
 - 以下のAPIキー：
-  - Grok APIキー（チャット・要約機能用）
+  - Gemini APIキー（チャット・要約機能用）
   - Reddit API認証情報（Reddit Explorer用）
+  - OpenWeatherMap APIキー（天気機能用）
 
 ### インストール
 
@@ -133,7 +134,7 @@ cp .env.example .env
 
 # .envファイルの環境変数を設定
 export OPENWEATHERMAP_API_KEY=your_api_key
-export GROK_API_KEY=your_api_key
+export GEMINI_API_KEY=your_api_key
 export REDDIT_CLIENT_ID=your_client_id
 export REDDIT_CLIENT_SECRET=your_client_secret
 export REDDIT_USER_AGENT=your_user_agent
@@ -199,7 +200,7 @@ nook/
 │   └── routers/          # APIルーター
 ├── common/               # 共通ユーティリティ
 │   ├── storage.py        # ローカルストレージ
-│   └── grok_client.py    # Grok3 APIクライアント
+│   └── gemini_client.py  # Gemini APIクライアント
 ├── frontend/             # React + Vite フロントエンド
 │   ├── src/              # ソースコード
 │   │   ├── components/   # UIコンポーネント
@@ -223,7 +224,7 @@ GNU AFFERO GENERAL PUBLIC LICENSE
 - [React](https://reactjs.org/)
 - [Vite](https://vitejs.dev/)
 - [OpenWeatherMap](https://openweathermap.org/)
-- [Grok](https://grok.ai/)
+- [Google Gemini](https://ai.google.dev/)
 - [Reddit API](https://www.reddit.com/dev/api/)
 - [Hacker News API](https://github.com/HackerNews/API)
 - [GitHub](https://github.com/)

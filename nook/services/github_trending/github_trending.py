@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from nook.common.storage import LocalStorage
-from nook.common.grok_client import Grok3Client
+from nook.common.gemini_client import GeminiClient
 
 
 @dataclass
@@ -165,15 +165,15 @@ class GithubTrending:
             翻訳されたリポジトリリスト。
         """
         try:
-            # Grok APIクライアントの初期化
-            grok_client = Grok3Client()
+            # Gemini APIクライアントの初期化
+            gemini_client = GeminiClient()
             
             for language, repositories in repositories_by_language:
                 for repo in repositories:
                     if repo.description:
                         prompt = f"以下の英語のテキストを自然な日本語に翻訳してください。技術用語はそのままでも構いません。\n\n{repo.description}"
                         try:
-                            repo.description = grok_client.generate_content(prompt=prompt, temperature=0.3)
+                            repo.description = gemini_client.generate_content(prompt=prompt, temperature=0.3)
                         except Exception as e:
                             print(f"Error translating description for {repo.name}: {str(e)}")
         
@@ -211,4 +211,4 @@ class GithubTrending:
                 content += "---\n\n"
         
         # 保存
-        self.storage.save_markdown(content, "github_trending", today) 
+        self.storage.save_markdown(content, "github_trending", today)

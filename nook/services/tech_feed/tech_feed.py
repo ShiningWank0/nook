@@ -10,7 +10,7 @@ import feedparser
 import requests
 from bs4 import BeautifulSoup
 
-from nook.common.grok_client import Grok3Client
+from nook.common.gemini_client import GeminiClient
 from nook.common.storage import LocalStorage
 
 
@@ -64,7 +64,7 @@ class TechFeed:
             ストレージディレクトリのパス。
         """
         self.storage = LocalStorage(storage_dir)
-        self.grok_client = Grok3Client()
+        self.gemini_client = GeminiClient()
         
         # フィードの設定を読み込む
         script_dir = Path(__file__).parent
@@ -251,7 +251,7 @@ class TechFeed:
         try:
             prompt = f"以下の英語のテキストを自然な日本語に翻訳してください。技術用語は適切に翻訳し、必要に応じて英語の専門用語を括弧内に残してください。\n\n{text}"
             
-            translated_text = self.grok_client.generate_content(
+            translated_text = self.gemini_client.generate_content(
                 prompt=prompt,
                 temperature=0.3,
                 max_tokens=1000
@@ -291,7 +291,7 @@ class TechFeed:
         """
         
         try:
-            summary = self.grok_client.generate_content(
+            summary = self.gemini_client.generate_content(
                 prompt=prompt,
                 system_instruction=system_instruction,
                 temperature=0.3,
@@ -352,4 +352,4 @@ class TechFeed:
                     f.write(content)
                 print(f"再試行で保存に成功しました: {file_path}")
             except Exception as e2:
-                print(f"再試行でも保存に失敗しました: {str(e2)}") 
+                print(f"再試行でも保存に失敗しました: {str(e2)}")
