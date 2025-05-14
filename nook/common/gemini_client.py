@@ -105,4 +105,60 @@ class GeminiClient:
         )
         
         if system_instruction:
-            # Gemini APIではシステムメッセージを
+            # Gemini APIではシステム指示を最初のメッセージとして送信
+            chat.send_message(system_instruction)
+            
+        return {"chat": chat}
+        
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    def chat(
+        self,
+        messages: List[Dict[str, str]],
+        system: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1000
+    ) -> str:
+        """
+        メッセージ履歴に基づいてチャット応答を生成します。
+        
+        Parameters
+        ----------
+        messages : List[Dict[str, str]]
+            チャットメッセージの履歴。各メッセージは{'role': 'user'|'assistant', 'content': '内容'}の形式。
+        system : str, optional
+            システム指示。
+        temperature : float, default=0.7
+            生成の多様性を制御するパラメータ。
+        max_tokens : int, default=1000
+            生成するトークンの最大数。
+            
+        Returns
+        -------
+        str
+            生成されたチャット応答テキスト。
+        """
+        generation_config = {
+            "temperature": temperature,
+            "max_output_tokens": max_tokens,
+        }
+        
+        # システム指示がある場合は、最初のメッセージとして設定
+        prompt_parts = []
+        if system:
+            prompt_parts.append({"role": "user", "parts": [{"text": system}]})
+            prompt_parts.append({"role": "model", "parts": [{"text": "了解しました。指示に従って回答します。"}]})
+        
+        # メッセージ履歴を変換
+        for message in messages:
+            role = message.get("role", "user")
+            content = message.get("content", "")
+            gemini_role = "user" if role == "user" else "model"
+            prompt_parts.append({"role": gemini_role, "parts": [{"text": content}]})
+        
+        # レスポンスを生成
+        response = self.model.generate_content(
+            prompt_parts,
+            generation_config=generation_config
+        )
+        
+        return response.text

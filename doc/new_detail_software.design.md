@@ -18,7 +18,7 @@ Nookはローカル環境で動作するアーキテクチャを採用してい�
 - **FastAPI**: RESTful APIを提供
 - **ローカルファイルシステム**: データストレージ
 - **cron**: 定期実行のスケジューリング
-- **API**: Grok3 API (OpenAI互換), Reddit API, 各種Web APIとの連携
+- **API**: Google Gemini API, Reddit API, 各種Web APIとの連携
 
 ### マイクロサービスアーキテクチャ
 Nookは以下の独立したマイクロサービスで構成されています：
@@ -46,7 +46,7 @@ graph TD
     User[ユーザー]:::userStyle
     Cron[cron<br>毎日定時実行]:::cronStyle
     LocalStorage[ローカルファイルシステム<br>データストレージ]:::storageStyle
-    Grok3API[Grok3 API<br>OpenAI互換]:::apiStyle
+    GeminiAPI[Google Gemini API]:::apiStyle
     FastAPI[FastAPI<br>バックエンドサーバー]:::apiStyle
     Streamlit[Streamlit<br>フロントエンドアプリ]:::frontendStyle
 
@@ -77,10 +77,10 @@ graph TD
     TechFeed --> RSSFeeds
     PaperSummarizer --> ArXiv
 
-    RedditExplorer --> Grok3API
-    TechFeed --> Grok3API
-    PaperSummarizer --> Grok3API
-    FastAPI --> Grok3API
+    RedditExplorer --> GeminiAPI
+    TechFeed --> GeminiAPI
+    PaperSummarizer --> GeminiAPI
+    FastAPI --> GeminiAPI
 
     RedditExplorer --> LocalStorage
     HackerNews --> LocalStorage
@@ -275,7 +275,7 @@ class PaperInfo:
 │   ├── __init__.py
 │   ├── common/ - 共通ユーティリティ
 │   │   ├── __init__.py
-│   │   ├── grok_client.py - Grok3 APIクライアント
+│   │   ├── gemini_client.py - Google Gemini APIクライアント
 │   │   └── storage.py - ローカルストレージ操作
 │   ├── services/ - 各サービスの実装
 │   │   ├── __init__.py
@@ -328,15 +328,14 @@ class PaperInfo:
 
 ## コンポーネント
 
-### 1. Grok3Client
-- **役割**: Grok3 API（OpenAI互換）との通信を担当
+### 1. GeminiClient
+- **役割**: Google Gemini APIとの通信を担当
 - **入力**: テキストプロンプト、システム指示
 - **出力**: 生成されたテキスト、チャット応答
 - **主要機能**:
   - `generate_content()`: テキスト生成
   - `create_chat()`: チャットセッション作成
-  - `send_message()`: メッセージ送信
-  - `chat_with_search()`: 検索機能付きチャット
+  - `chat()`: チャットメッセージに対する応答生成
 
 ### 2. LocalStorage
 - **役割**: ローカルファイルシステムでのデータ操作
@@ -422,7 +421,7 @@ class PaperInfo:
    - GithubTrending: GitHubからのトレンドリポジトリ取得
    - TechFeed: RSSフィードからの記事取得
    - PaperSummarizer: arXiv APIからの論文取得
-3. 必要に応じてGrok3 APIを使用してコンテンツを要約
+3. 必要に応じてGemini APIを使用してコンテンツを要約
 4. 処理結果をMarkdown形式でローカルファイルシステムに保存
 
 ### 2. 表示フロー
@@ -434,9 +433,9 @@ class PaperInfo:
 ### 3. チャットフロー
 1. ユーザーがチャットインターフェースでメッセージを送信
 2. StreamlitアプリがメッセージをFastAPIに送信
-3. FastAPIがメッセージと関連するMarkdownをGrok3 APIに送信
+3. FastAPIがメッセージと関連するMarkdownをGemini APIに送信
 4. 必要に応じてリンク先の内容を取得して追加コンテキストとして提供
-5. Grok3 APIからの応答をユーザーに表示
+5. Gemini APIからの応答をユーザーに表示
 
 ## ユーザーインターフェース
 
@@ -471,7 +470,7 @@ graph TD
 
 ### 必要なライブラリとそのバージョン
 - **共通**:
-  - openai: Grok3 API（OpenAI互換）クライアント
+  - google-generativeai: Google Gemini APIクライアント
   - tenacity: リトライ処理
   - pydantic: データバリデーション
 
@@ -509,7 +508,7 @@ graph TD
 
 ### 環境変数の設定
 ```
-GROK3_API_KEY=your_grok3_api_key
+GEMINI_API_KEY=your_gemini_api_key
 REDDIT_CLIENT_ID=your_reddit_client_id
 REDDIT_CLIENT_SECRET=your_reddit_client_secret
 REDDIT_USER_AGENT=your_reddit_user_agent

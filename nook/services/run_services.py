@@ -79,10 +79,10 @@ def run_paper_summarizer():
     """
     print("arXiv論文を収集・要約しています...")
     try:
-        # Grok APIキーの確認
-        if not os.environ.get("GROK_API_KEY"):
-            print("警告: GROK_API_KEY が設定されていません。")
-            print("論文要約には Grok API が必要です。")
+        # Gemini APIキーの確認
+        if not os.environ.get("GEMINI_API_KEY"):
+            print("警告: GEMINI_API_KEY が設定されていません。")
+            print("論文要約には Gemini API が必要です。")
             return
             
         paper_summarizer = PaperSummarizer()
